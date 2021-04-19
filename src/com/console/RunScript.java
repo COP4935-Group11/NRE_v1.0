@@ -37,23 +37,27 @@ public class RunScript {
 	protected static final String SKIPPED_MESSAGE = "SKIPPED : Suite stopped on failure!";
 	
 	protected static Map<String, ArrayList<String>> tagsMap = FeaturesFactory.getTags();
-	protected static File suiteScript;
 	protected static GroovyClassLoader gcl = null;
-	
+	protected static ThreadLocal<File> suiteScript = new ThreadLocal<File>() {
+		  @Override
+	        protected File initialValue() {
+	            return new File((StringConstants.SUITE_FOLDER + Thread.currentThread().getId() + (RunConfiguration.getTestSuiteObj().getPath().
+						substring(RunConfiguration.getTestSuiteObj().getPath().lastIndexOf(StringConstants.ID_SEPARATOR)))).
+						replace(StringConstants.TEST_SUITES_EXT, StringConstants.GROOVY_EXT));
+	        }
+	};
 	
     public static int beforeSuite() {
 	 	 	 
     	int fail = 0;
-		suiteScript = new File((StringConstants.SUITE_FOLDER + Thread.currentThread().getId() + (RunConfiguration.getTestSuiteObj().getPath().
-					substring(RunConfiguration.getTestSuiteObj().getPath().lastIndexOf(StringConstants.ID_SEPARATOR)))).
-					replace(StringConstants.TEST_SUITES_EXT, StringConstants.GROOVY_EXT));
+		
 		gcl = new GroovyClassLoader(Thread.currentThread().getContextClassLoader());
 		Boolean skipped = true;		
 	 	
 		try {
 	
 					
-			Class<?> clazz = gcl.parseClass(suiteScript);
+			Class<?> clazz = gcl.parseClass(suiteScript.get());
 			GroovyShell groovyShell = new GroovyShell(gcl);
 			
 			Method m = clazz.getMethod("setUp", (Class<?>[]) null);
@@ -68,7 +72,7 @@ public class RunScript {
 					RunConfiguration.getTestSuiteObj().setCurrentNode(RunConfiguration.getTestSuiteObj().getSuiteCase().createNode("Suite setup").
 							assignCategory(StringConstants.HOOKS_REPORT_TAG));
 					try {
-						groovyShell.parse(suiteScript).invokeMethod("setUp", null);
+						groovyShell.parse(suiteScript.get()).invokeMethod("setUp", null);
 						RunConfiguration.getTestSuiteObj().getCurrentNode().pass(StringConstants.PASS_LOG);
 					}catch(Exception e) { 
 						LOGGER.severe(e.getMessage());
@@ -95,7 +99,7 @@ public class RunScript {
 
 		 try {
 
-			 Class<?> clazz = gcl.parseClass(suiteScript);
+			 Class<?> clazz = gcl.parseClass(suiteScript.get());
 				GroovyShell groovyShell = new GroovyShell(gcl);
 			 
 			 Method m = clazz.getMethod("tearDown", (Class<?>[]) null);
@@ -117,7 +121,7 @@ public class RunScript {
 						}else {
 							
 							try {
-								groovyShell.parse(suiteScript).invokeMethod("tearDown", null);
+								groovyShell.parse(suiteScript.get()).invokeMethod("tearDown", null);
 								RunConfiguration.getTestSuiteObj().getCurrentNode().pass("PASSED");
 							}catch(Exception e) { 
 									LOGGER.severe(e.getMessage());
@@ -145,7 +149,7 @@ public class RunScript {
 
 		try {
 
-			Class<?> clazz = gcl.parseClass(suiteScript);
+			Class<?> clazz = gcl.parseClass(suiteScript.get());
 			GroovyShell groovyShell = new GroovyShell(gcl);
 			
 			Method m = clazz.getMethod("setupTestCase", (Class<?>[])  null);
@@ -161,7 +165,7 @@ public class RunScript {
 							.getTestCase().createNode("TestCase SetUp").assignCategory("Hooks"));
 					
 					try {
-						groovyShell.parse(suiteScript).invokeMethod("setupTestCase", null);
+						groovyShell.parse(suiteScript.get()).invokeMethod("setupTestCase", null);
 						RunConfiguration.getTestSuiteObj().getCurrentNode().pass("PASSED");
 					}
 					catch(Exception e)	{ 
@@ -190,7 +194,7 @@ public class RunScript {
 
 		try {
 
-			Class<?> clazz = gcl.parseClass(suiteScript);
+			Class<?> clazz = gcl.parseClass(suiteScript.get());
 			GroovyShell groovyShell = new GroovyShell(gcl);
 			
 			Method m = clazz.getMethod("tearDownTestCase", (Class<?>[])  null);
@@ -210,7 +214,7 @@ public class RunScript {
 					}else {
 					
 						try {
-							groovyShell.parse(suiteScript).invokeMethod("tearDownTestCase", null);
+							groovyShell.parse(suiteScript.get()).invokeMethod("tearDownTestCase", null);
 							RunConfiguration.getTestSuiteObj().getCurrentNode().pass(StringConstants.PASS_LOG);
 						}catch(Exception e){ 
 							LOGGER.severe(e.getMessage());

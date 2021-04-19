@@ -22,7 +22,6 @@ import com.driver.DriverFactory;
 import com.scripts.*;
 import com.util.DirectoryUtils;
 
-//import Reporter.Report;
 
 public class RunConsole {
 	
@@ -75,7 +74,7 @@ public class RunConsole {
 		}else {
 		
 		TestSuite testSuite = new TestSuite();		
-		testSuite.initSuite(path.getAbsolutePath(), RunConfiguration.getProfile(), RunConfiguration.getBrowser());
+		testSuite.initSuite(path.getPath(), RunConfiguration.getProfile(), RunConfiguration.getBrowser());
 		RunConfiguration.setTestSuiteObj(testSuite);
 		
 		RunConfiguration.setExtent(new ExtentReports());
@@ -189,8 +188,8 @@ public class RunConsole {
 			
 			DriverFactory.cleanAllDrivers();
 			
-			if(isCollection && RunConfiguration.getTsCollection().getExecutionMode() == 1)
-				cleanParallelSuite();	
+			if(isCollection)
+				cleanSuite();	
 			
 			
 		} catch (Exception e) {			
@@ -215,6 +214,17 @@ public class RunConsole {
 							StringConstants.ANSI_RESET);
 					LOGGER.severe(e.getMessage());
 				}
+				
+				progressiveMessage("\n\t./"+StringConstants.CUCUMBER_DIR);
+				try {
+					DirectoryUtils.deleteDirectory(StringConstants.CUCUMBER_DIR);
+					System.out.print(" " +StringConstants.GREEN_BOLD_BRIGHT + StringConstants.GREEN_UNDERLINED + "DONE"
+										+StringConstants.ANSI_RESET);
+				} catch (IOException e) {
+					System.out.print(" " +StringConstants.RED_BOLD_BRIGHT + "ERROR: The file could not be deleted!" +
+							StringConstants.ANSI_RESET);
+					LOGGER.severe(e.getMessage());
+				}				
 			}
 			progressiveMessage("\n\t./"+StringConstants.COMPILED_STEPS_FOLDER + Thread.currentThread().getId());
 			try {	
@@ -268,7 +278,7 @@ public class RunConsole {
 	}	
 	
 	
-	protected static void cleanParallelSuite() {
+	protected static void cleanSuite() {
 		
 		System.out.println(StringConstants.ANSI_RESET);
 		System.out.println("Deleting Temporary Files:");
@@ -436,7 +446,7 @@ public class RunConsole {
 					
 					stopLoading();
 					console(RunConfiguration.getTestSuiteObj());
-					
+													
 					//RUNNING MODE = PARALLEL
 				}else {
 				
@@ -451,31 +461,40 @@ public class RunConsole {
 					startSignal.countDown(); 
 					doneSignal.await();	
 					
-					
 										
 				} catch (InterruptedException e) {
 					LOGGER.severe(e.getMessage());
 				}
 				
-				try {
-				System.out.println(StringConstants.ANSI_RESET);
-				progressiveMessage("Deleting Temporary Files:");
-			
-				progressiveMessage("\n\t./"+StringConstants.TEMP_FOLDER);
-				try {
-						DirectoryUtils.deleteDirectory(StringConstants.TEMP_FOLDER);
-						System.out.print(" " +StringConstants.GREEN_BOLD_BRIGHT + StringConstants.GREEN_UNDERLINED + "DONE"
-											+StringConstants.ANSI_RESET);
-				} catch (IOException e) {
-						System.out.print(" " +StringConstants.RED_BOLD_BRIGHT + "ERROR: The file could not be deleted!" +
-								StringConstants.ANSI_RESET);
-						LOGGER.severe(e.getMessage());
-				}
-				}catch(Exception ex) {LOGGER.severe(ex.getMessage());}
 			}
+			
+			try {
+			System.out.println(StringConstants.ANSI_RESET);
+			progressiveMessage("Deleting Temporary Files:");
 		
-			if(RunConfiguration.getTsCollection().getExecutionMode() == 0)
-				cleanProject();
+			progressiveMessage("\n\t./"+StringConstants.TEMP_FOLDER);
+				try {
+					DirectoryUtils.deleteDirectory(StringConstants.TEMP_FOLDER);
+					System.out.print(" " +StringConstants.GREEN_BOLD_BRIGHT + StringConstants.GREEN_UNDERLINED + "DONE"
+										+StringConstants.ANSI_RESET);
+				} catch (IOException e) {
+					System.out.print(" " +StringConstants.RED_BOLD_BRIGHT + "ERROR: The file could not be deleted!" +
+							StringConstants.ANSI_RESET);
+					LOGGER.severe(e.getMessage());
+				}
+			
+			progressiveMessage("\n\t./"+StringConstants.CUCUMBER_DIR);
+				try {
+					DirectoryUtils.deleteDirectory(StringConstants.CUCUMBER_DIR);
+					System.out.print(" " +StringConstants.GREEN_BOLD_BRIGHT + StringConstants.GREEN_UNDERLINED + "DONE"
+										+StringConstants.ANSI_RESET);
+				} catch (IOException e) {
+					System.out.print(" " +StringConstants.RED_BOLD_BRIGHT + "ERROR: The file could not be deleted!" +
+							StringConstants.ANSI_RESET);
+					LOGGER.severe(e.getMessage());
+				}
+				
+			}catch(Exception ex) {LOGGER.severe(ex.getMessage());}		
 					
 	}
 	
